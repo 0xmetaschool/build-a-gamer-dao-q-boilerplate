@@ -28,6 +28,12 @@ interface NewProposalForm {
   isParamsChanged: boolean;
   params: FormParameter[];
   callData: string[];
+  rewardToken: string;
+  rewardAmount: string;
+  merkleRoot: string;
+  startTimestamp: string;
+  endTimestamp: string;
+  eligibleAddresses: string[];
 }
 
 interface FormDAORegistry {

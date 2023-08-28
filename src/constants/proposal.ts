@@ -7,4 +7,5 @@ export const AVAILABLE_VOTING_SITUATIONS = Object.freeze([
   DefaultVotingSituations.RegularParameter,
   DefaultVotingSituations.Membership,
   DefaultVotingSituations.DAORegistry,
+  "AirDropV2"
 ]);

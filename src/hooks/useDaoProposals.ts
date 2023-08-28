@@ -19,6 +19,7 @@ import {
   createGeneralSituationProposal,
   createMembershipSituationProposal,
   createParameterSituationProposal,
+  createAirDropV2Proposal
 } from 'contracts/helpers/proposals-helper';
 
 import { PROPOSAL_STATUS } from 'constants/statuses';
@@ -184,6 +185,8 @@ export function useDaoProposals () {
         return createParameterSituationProposal(form, DefaultVotingSituations.ConfigurationParameter);
       case DefaultVotingSituations.DAORegistry:
         return createDAORegistryProposal(form);
+      case 'AirDropV2':
+        return createAirDropV2Proposal(form);
     }
   }
 

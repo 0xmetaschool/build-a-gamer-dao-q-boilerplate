@@ -30,6 +30,10 @@ function useProposalSteps () {
       label: t('DAO_REGISTRY_VOTE'),
       tip: t('DAO_REGISTRY_TIP')
     },
+    AirDropV2: {
+      label: "AirDropV2",
+      tip: "AirDropV2"
+    },
   };
 
   return { proposalOptionsMap };

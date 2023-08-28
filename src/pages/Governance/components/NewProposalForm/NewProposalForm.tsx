@@ -14,6 +14,7 @@ import { useDaoProposals } from 'hooks/useDaoProposals';
 
 import { ListEmptyStub } from '../Proposals/styles';
 
+import AirDropV2DetailsStep from './components/AirDropV2DetailsStep';
 import ConfirmationStep from './components/ConfirmationStep';
 import ConstitutionHashStep from './components/ConstitutionHashStep';
 import ConstitutionSituationStep from './components/ConstitutionSituationStep';
@@ -40,6 +41,12 @@ const DEFAULT_VALUES: NewProposalFormType = {
   isParamsChanged: false,
   params: [],
   callData: [],
+  rewardToken: '',
+  rewardAmount: '',
+  merkleRoot: '',
+  startTimestamp: '',
+  endTimestamp: '',
+  eligibleAddresses: []
 };
 
 const NewProposalContext = createContext(
@@ -113,6 +120,15 @@ function NewProposalForm ({ panelName }: { panelName: string }) {
             name: t('DETAILS'),
             title: t('DETAILS'),
             children: <GeneralSituationStep />
+          }]
+          : []
+        ),
+        ...(form.values.type === 'AirDropV2'
+          ? [{
+            id: 'airdrop-v2',
+            name: t('DETAILS'),
+            title: t('DETAILS'),
+            children: <AirDropV2DetailsStep />
           }]
           : []
         ),

@@ -95,6 +95,23 @@ export async function createDAORegistryProposal (form: NewProposalForm) {
   return daoInstance.createVoting(votingInstance, votingParams);
 }
 
+export async function createAirDropV2Proposal (form: NewProposalForm) {
+  if (!daoInstance) return;
+  const votingInstance = await daoInstance.getDAOVotingInstance(form.panel);
+
+  const votingParams: CreateVotingParameters = {
+    remark: form.remark,
+    situation: 'AirDropV2',
+    callData: getEncodedData(
+      'AirDropV2',
+      'multicall',
+      form.callData
+    )
+  };
+
+  return daoInstance.createVoting(votingInstance, votingParams);
+}
+
 export const getStatusState = (status: PROPOSAL_STATUS): TagState => {
   switch (status) {
     case PROPOSAL_STATUS.pending:
