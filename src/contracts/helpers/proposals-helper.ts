@@ -11,6 +11,8 @@ import { NewProposalForm } from 'typings/forms';
 import { daoInstance } from 'contracts/contract-instance';
 
 import { PROPOSAL_STATUS } from 'constants/statuses';
+import AirDropV2 from 'artifacts/AirDropV2.json';
+import { utils } from 'ethers';
 
 export async function createMembershipSituationProposal (form: NewProposalForm) {
   if (!daoInstance) return;
@@ -98,15 +100,19 @@ export async function createDAORegistryProposal (form: NewProposalForm) {
 export async function createAirDropV2Proposal (form: NewProposalForm) {
   if (!daoInstance) return;
   const votingInstance = await daoInstance.getDAOVotingInstance(form.panel);
+  const contractInterface = new utils.Interface(AirDropV2);
+  const createCampaignCalldata = contractInterface.encodeFunctionData("createCampaign", [
+    form.rewardToken,
+    form.rewardAmount,
+    form.merkleRoot,
+    form.startTimestamp,
+    form.endTimestamp,
+  ]);
 
   const votingParams: CreateVotingParameters = {
     remark: form.remark,
     situation: 'AirDropV2',
-    callData: getEncodedData(
-      'AirDropV2',
-      'multicall',
-      form.callData
-    )
+    callData: createCampaignCalldata
   };
 
   return daoInstance.createVoting(votingInstance, votingParams);

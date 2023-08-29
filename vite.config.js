@@ -37,6 +37,7 @@ export default defineConfig(({ mode }) => {
         components: path.resolve(__dirname, './src/components'),
         constants: path.resolve(__dirname, './src/constants'),
         contracts: path.resolve(__dirname, './src/contracts'),
+        artifacts: path.resolve(__dirname, './src/artifacts'),
         utils: path.resolve(__dirname, './src/utils'),
         helpers: path.resolve(__dirname, './src/helpers'),
         errors: path.resolve(__dirname, './src/errors'),
