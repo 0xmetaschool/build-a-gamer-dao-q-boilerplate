@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { DecodedData, DefaultVotingSituations } from '@q-dev/gdk-sdk';
 import { Modal, Tooltip } from '@q-dev/q-ui-kit';
+import { keccak_256 as keccak256 } from 'js-sha3';
+import { MerkleTree } from 'merkletreejs';
 import { ProposalBaseInfo } from 'typings/proposals';
 
 import Button from 'components/Button';
@@ -56,6 +58,30 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const isSignNeeded = useMemo(() => {
     return isMembershipSituation && isConstitutionSignNeeded;
   }, [isMembershipSituation, isConstitutionSignNeeded]);
+  
+
+  const verifyAddressInMerkleTree = async (address: string) => {
+    // 1. Load the Merkle tree data from tree.json
+    const treeData = await fetch('artifacts/tree.json').then(res => res.json());
+    const leafNodes = treeData.leafNodes;
+    const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
+
+    // 2. Generate a proof for the given address
+    const leaf = keccak256(address.replace('0x', ''));
+    const proof = merkleTree.getProof(leaf);
+
+    // 3. Verify the proof against the Merkle root
+    return merkleTree.verify(proof, leaf, treeData.root);
+  };
+
+  const canClaimAirdrop = useMemo(() => {
+    console.log('userAddress', userAddress)
+
+    // proposal should be executed
+    if (proposal.votingStatus !== PROPOSAL_STATUS.executed) return false;
+
+    return Boolean(userAddress) && verifyAddressInMerkleTree(userAddress);
+  }, [proposal.votingStatus, userAddress, decodedCallData, isMembershipSituation]);
 
   const canExecute = useMemo(() => {
     if (proposal.votingStatus !== PROPOSAL_STATUS.passed) return false;
@@ -94,6 +120,15 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
           onClick={() => setModalOpen(true)}
         >
           {proposal.isUserVoted ? t('YOU_VOTED') : t('VOTE')}
+        </Button>
+      )}
+
+      {proposal.votingStatus === PROPOSAL_STATUS.executed && canClaimAirdrop && (
+        <Button
+          style={{ width: '160px' }}
+          onClick={() => setModalOpen(true)}
+        >
+          {t('CLAIM')}
         </Button>
       )}
 
