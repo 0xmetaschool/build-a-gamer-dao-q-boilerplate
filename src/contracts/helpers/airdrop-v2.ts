@@ -7,7 +7,7 @@ import { daoInstance } from 'contracts/contract-instance';
 interface ClaimParameters {
   index: any;
   address: string;
-  proof: any;
+  proof: string[];
 }
 
 export async function claimAirdropReward (params: ClaimParameters): Promise<ContractTransaction> {

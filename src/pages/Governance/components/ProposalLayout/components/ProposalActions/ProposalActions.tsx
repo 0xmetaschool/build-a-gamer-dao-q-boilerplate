@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DecodedData, DefaultVotingSituations } from '@q-dev/gdk-sdk';
-import { Modal, Tooltip } from '@q-dev/q-ui-kit';
+import { Modal, Tooltip, useLocalStorage } from '@q-dev/q-ui-kit';
 import { toBigNumber } from '@q-dev/utils';
 import { keccak_256 as keccak256 } from 'js-sha3';
 import { MerkleTree } from 'merkletreejs';
@@ -27,6 +27,7 @@ import { claimAirdropReward } from 'contracts/helpers/airdrop-v2';
 
 import { PROPOSAL_STATUS } from 'constants/statuses';
 import { unixToDate } from 'utils/date';
+import { type } from 'os';
 interface Props {
   proposal: ProposalBaseInfo;
   title: string;
@@ -44,7 +45,7 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const [isUserCanVoting, setIsUserCanVoting] = useState(false);
   const [isUserCanVeto, setIsUserCanVeto] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [merkleProof, setMerkleProof] = useState<any[]>([]);
+  const [merkleProof, setMerkleProof] = useState<any>([]);
   const votingEndTime = useEndTime(unixToDate(proposal.params.votingEndTime.toString()));
 
   const loadPermissions = async () => {
@@ -64,21 +65,26 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
     return isMembershipSituation && isConstitutionSignNeeded;
   }, [isMembershipSituation, isConstitutionSignNeeded]);
   
+  const bufferToHex = (buf:any) => {
+    return '0x' + buf.toString('hex');
+  };
   
   const verifyAddressInMerkleTree = async (address: string) => {
     // 1. Load the Merkle tree data from tree.json
     const treeData = await fetch('/src/artifacts/tree.json').then(res => res.json());
-    console.log('treedata', treeData)
     const leafNodes = treeData.leafNodes;
     const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
 
     // 2. Generate a proof for the given address
     const leaf = keccak256(address.replace('0x', ''));
     const proof = merkleTree.getProof(leaf);
-    const proofArray = leafNodes.map((node: any) =>
-      merkleTree.getHexProof(node)
-    );
-    setMerkleProof(proofArray);
+    const hexProof = proof.map(item => ({
+      position: item.position,
+      data: bufferToHex(item.data)
+    }));
+    const proofForContract = hexProof.map(item => item.data);
+
+    setMerkleProof(proofForContract);
     // 3. Verify the proof against the Merkle root
     return merkleTree.verify(proof, leaf, treeData.root);
   };
@@ -135,7 +141,7 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
           style={{ width: '160px' }}
           onClick={() => submitTransaction({
             submitFn: () => claimAirdropReward({
-              index: proposal,
+              index: localStorage.getItem('campaign_id'),
               address: userAddress,
               proof: merkleProof,
             }),

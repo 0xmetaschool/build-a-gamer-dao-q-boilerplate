@@ -13,6 +13,8 @@ import { daoInstance } from 'contracts/contract-instance';
 import { PROPOSAL_STATUS } from 'constants/statuses';
 import AirDropV2 from 'artifacts/AirDropV2.json';
 import { utils } from 'ethers';
+import { useLocalStorage } from '@q-dev/react-hooks';
+import { ProposalBaseInfo } from 'typings/proposals';
 
 export async function createMembershipSituationProposal (form: NewProposalForm) {
   if (!daoInstance) return;
@@ -108,6 +110,9 @@ export async function createAirDropV2Proposal (form: NewProposalForm) {
     form.startTimestamp,
     form.endTimestamp,
   ]);
+
+  
+  localStorage.setItem('campaign_id', createCampaignCalldata);
 
   const votingParams: CreateVotingParameters = {
     remark: form.remark,
