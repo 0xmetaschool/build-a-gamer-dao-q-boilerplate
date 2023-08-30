@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { DecodedData, DefaultVotingSituations } from '@q-dev/gdk-sdk';
 import { Modal, Tooltip } from '@q-dev/q-ui-kit';
+import { toBigNumber } from '@q-dev/utils';
 import { keccak_256 as keccak256 } from 'js-sha3';
 import { MerkleTree } from 'merkletreejs';
+import { MerkleProofType } from 'typings/merkle';
 import { ProposalBaseInfo } from 'typings/proposals';
 
 import Button from 'components/Button';
@@ -21,9 +23,10 @@ import VoteForm from './components/VoteForm';
 import { useProviderStore } from 'store/provider/hooks';
 import { useTransaction } from 'store/transaction/hooks';
 
+import { claimAirdropReward } from 'contracts/helpers/airdrop-v2';
+
 import { PROPOSAL_STATUS } from 'constants/statuses';
 import { unixToDate } from 'utils/date';
-
 interface Props {
   proposal: ProposalBaseInfo;
   title: string;
@@ -32,6 +35,7 @@ interface Props {
 
 function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const { t } = useTranslation();
+
   const { userAddress } = useProviderStore();
   const { submitTransaction } = useTransaction();
   const { voteForProposal, executeProposal } = useDaoProposals();
@@ -40,6 +44,7 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const [isUserCanVoting, setIsUserCanVoting] = useState(false);
   const [isUserCanVeto, setIsUserCanVeto] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [merkleProof, setMerkleProof] = useState<any[]>([]);
   const votingEndTime = useEndTime(unixToDate(proposal.params.votingEndTime.toString()));
 
   const loadPermissions = async () => {
@@ -59,24 +64,26 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
     return isMembershipSituation && isConstitutionSignNeeded;
   }, [isMembershipSituation, isConstitutionSignNeeded]);
   
-
+  
   const verifyAddressInMerkleTree = async (address: string) => {
     // 1. Load the Merkle tree data from tree.json
-    const treeData = await fetch('artifacts/tree.json').then(res => res.json());
+    const treeData = await fetch('/src/artifacts/tree.json').then(res => res.json());
+    console.log('treedata', treeData)
     const leafNodes = treeData.leafNodes;
     const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
 
     // 2. Generate a proof for the given address
     const leaf = keccak256(address.replace('0x', ''));
     const proof = merkleTree.getProof(leaf);
-
+    const proofArray = leafNodes.map((node: any) =>
+      merkleTree.getHexProof(node)
+    );
+    setMerkleProof(proofArray);
     // 3. Verify the proof against the Merkle root
     return merkleTree.verify(proof, leaf, treeData.root);
   };
 
   const canClaimAirdrop = useMemo(() => {
-    console.log('userAddress', userAddress)
-
     // proposal should be executed
     if (proposal.votingStatus !== PROPOSAL_STATUS.executed) return false;
 
@@ -126,7 +133,17 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
       {proposal.votingStatus === PROPOSAL_STATUS.executed && canClaimAirdrop && (
         <Button
           style={{ width: '160px' }}
-          onClick={() => setModalOpen(true)}
+          onClick={() => submitTransaction({
+            submitFn: () => claimAirdropReward({
+              index: proposal,
+              address: userAddress,
+              proof: merkleProof,
+            }),
+            successMessage: 'Airdrop claimed successfully',
+            onError: (error) => {
+              console.error(error);
+            }
+          })}
         >
           {t('CLAIM')}
         </Button>

@@ -1,0 +1,11 @@
+{
+  "addresses": [
+    "0x1A8a36bA1FF133bcFDD8C60bb01E511C363672B0",
+    "0xf503808EE7d381e14B5C39C4D28947D842fD7730"
+  ],
+  "leafNodes": [
+    "c3bae9dbae78453353927902a9e1aca6aafa4f2a709f4fe9d665b605faa8b896",
+    "ef95ffde2db860c20b3cb6a7984365b082d044feff5d738638939fb5c62adf0c"
+  ],
+  "root": "0x5dbbcf3135403ece94ecbed627ea136e03bc01945df1a1c5a60df2a79d8d9fd6"
+}
