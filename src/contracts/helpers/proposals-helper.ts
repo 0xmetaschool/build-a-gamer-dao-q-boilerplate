@@ -15,6 +15,7 @@ import AirDropV2 from 'artifacts/AirDropV2.json';
 import { utils } from 'ethers';
 import { useLocalStorage } from '@q-dev/react-hooks';
 import { ProposalBaseInfo } from 'typings/proposals';
+import { BigNumberish, ContractTransaction, providers, Signer } from "ethers";
 
 export async function createMembershipSituationProposal (form: NewProposalForm) {
   if (!daoInstance) return;
@@ -101,6 +102,8 @@ export async function createDAORegistryProposal (form: NewProposalForm) {
 
 export async function createAirDropV2Proposal (form: NewProposalForm) {
   if (!daoInstance) return;
+  // const provider = new providers.JsonRpcProvider("https://rpc.qtestnet.org");
+  // console.log('provider', provider)
   const votingInstance = await daoInstance.getDAOVotingInstance(form.panel);
   const contractInterface = new utils.Interface(AirDropV2);
   const createCampaignCalldata = contractInterface.encodeFunctionData("createCampaign", [
@@ -120,7 +123,12 @@ export async function createAirDropV2Proposal (form: NewProposalForm) {
     callData: createCampaignCalldata
   };
 
-  return daoInstance.createVoting(votingInstance, votingParams);
+  const transactionResponse = await daoInstance.createVoting(votingInstance, votingParams);
+  console.log('transactionResponse', transactionResponse.hash)
+  // const txReceipt = await provider.waitForTransaction(transactionResponse.hash);
+  // console.log('txReceipt', txReceipt);
+
+  return transactionResponse;
 }
 
 export const getStatusState = (status: PROPOSAL_STATUS): TagState => {

@@ -62,7 +62,22 @@ export function useDaoProposals () {
     try {
       if (!daoInstance) return;
       const votingInstance = await daoInstance.getDAOVotingInstance(panelName);
-      return votingInstance.getProposal(Number(proposalId));
+      const proposal = await votingInstance.getProposal(Number(proposalId));
+      if (proposal.relatedVotingSituation === 'AirDropV2') {
+        const [executedEvent] = await votingInstance.instance.queryFilter(
+          votingInstance.instance.filters.ProposalExecuted(proposalId),
+          0,
+          'latest'
+        );
+
+        if (executedEvent) {
+          const receipt = await executedEvent.getTransactionReceipt();
+          const rawCampaignId = receipt.logs[0].topics[1];
+          const campaignId = parseInt(rawCampaignId);
+          localStorage.setItem('campaign_id', campaignId.toString());
+        }
+      }
+      return proposal;
     } catch (error) {
       ErrorHandler.processWithoutFeedback(error);
     }

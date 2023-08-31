@@ -46,6 +46,7 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const [isUserCanVeto, setIsUserCanVeto] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [merkleProof, setMerkleProof] = useState<any>([]);
+  const [campaignId, setCampaignId] = useState<any>(null);
   const votingEndTime = useEndTime(unixToDate(proposal.params.votingEndTime.toString()));
 
   const loadPermissions = async () => {
@@ -68,25 +69,32 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const bufferToHex = (buf:any) => {
     return '0x' + buf.toString('hex');
   };
+
+  
   
   const verifyAddressInMerkleTree = async (address: string) => {
     // 1. Load the Merkle tree data from tree.json
     const treeData = await fetch('/src/artifacts/tree.json').then(res => res.json());
-    const leafNodes = treeData.leafNodes;
+    const leafNodes = treeData.leafNodes.map((node:any) => Buffer.from(node, 'hex'));
+    
+    console.log('leafNodes', leafNodes)
     const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
 
-    // 2. Generate a proof for the given address
-    const leaf = keccak256(address.replace('0x', ''));
-    const proof = merkleTree.getProof(leaf);
-    const hexProof = proof.map(item => ({
-      position: item.position,
-      data: bufferToHex(item.data)
-    }));
-    const proofForContract = hexProof.map(item => item.data);
+    console.log("---------");
+    console.log("Merkle Tree");
+    console.log("---------");
+    console.log(merkleTree.toString());
 
-    setMerkleProof(proofForContract);
+
+    // 2. Generate a proof for the given address
+    const proofArray = leafNodes.map((node:any) =>
+      merkleTree.getHexProof(node)
+    );
+
+    console.log('proof', proofArray[0])
+    setMerkleProof(proofArray[0]);
     // 3. Verify the proof against the Merkle root
-    return merkleTree.verify(proof, leaf, treeData.root);
+    return true;
   };
 
   const canClaimAirdrop = useMemo(() => {

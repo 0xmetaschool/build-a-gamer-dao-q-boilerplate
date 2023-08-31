@@ -23,6 +23,7 @@
     "@q-dev/react-hooks": "^1.0.0-rc.1",
     "@q-dev/utils": "^0.1.0",
     "@reduxjs/toolkit": "^1.8.3",
+    "@types/web3": "^1.2.2",
     "axios": "^1.2.2",
     "bignumber.js": "^9.0.1",
     "buffer": "^6.0.3",
@@ -62,6 +63,7 @@
     "web3-utils": "^1.8.2"
   },
   "devDependencies": {
+    "@nomiclabs/hardhat-web3": "^2.0.0",
     "@types/lodash": "^4.14.182",
     "@types/node": "^17.0.44",
     "@types/react": "^18.0.12",
@@ -94,7 +96,8 @@
     "typescript": "^4.7.3",
     "vite": "^2.9.9",
     "vite-plugin-checker": "^0.4.6",
-    "vite-plugin-eslint": "^1.6.1"
+    "vite-plugin-eslint": "^1.6.1",
+    "web3": "^1.10.2"
   },
   "browserslist": {
     "production": [

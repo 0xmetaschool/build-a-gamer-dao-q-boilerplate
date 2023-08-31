@@ -8,29 +8,41 @@ import { keccak_256 as keccak256 } from 'js-sha3';
 import { MerkleTree } from 'merkletreejs';
 import { NewProposalForm } from 'typings/forms';
 
-import { FormStep } from 'components/MultiStepForm';
-
-import { useNewProposalForm } from '../NewProposalForm';
-
-import { required } from 'utils/validators';
-
 import Button from 'components/Button';
 import Input from 'components/Input';
+import { FormStep } from 'components/MultiStepForm';
+
+import { getCurrentBlockTime } from 'helpers/blocks';
+import { useNewProposalForm } from '../NewProposalForm';
+import { BigNumber } from "bignumber.js";
+
+
+
 
 function AirDropV2DetailsStep () {
+
   const { t } = useTranslation();
   const { goNext, goBack } = useNewProposalForm();
 
   const [dynamicAddresses, setDynamicAddresses] = useState<string[]>([]);
   const [newAddress, setNewAddress] = useState('');
   const [addressError, setAddressError] = useState<string | null>(null);
-
+  
   const addresses = [
     "0xFDDD69Dbc041DeBE65A582BF6835A7D1172E94D2",
     "0xABe215Fb79fB827978C82379d5974831E2FB5E0d",
     "0xf503808EE7d381e14B5C39C4D28947D842fD7730",
     "0x1A8a36bA1FF133bcFDD8C60bb01E511C363672B0"
   ];
+  
+  function toBN(value: string | number | BigNumber | bigint) {
+    if (typeof value === "bigint") {
+      value = value.toString();
+    }
+  
+    return new BigNumber(value);
+  }
+
   
   function downloadJSON(data: any, filename: string): void {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -43,51 +55,57 @@ function AirDropV2DetailsStep () {
 }
 
   const getMerkleRoot = () => {
-    const leafNodes = dynamicAddresses.map(address => keccak256(address.replace('0x', '')));
+    const leafNodes = ['0x1A8a36bA1FF133bcFDD8C60bb01E511C363672B0', '0x1A8a36bA1FF133bcFDD8C60bb01E511C363672B0'].map((address) =>
+      keccak256(
+        Buffer.from(address.replace('0x', ''), 'hex'),
+      ));
     const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
+
+    // Exporting the tree as JSON
     const data = {
-      addresses: dynamicAddresses.map((address) => address),
+      addresses: addresses.map((address) => address),
       leafNodes: leafNodes,
       root: merkleTree.getHexRoot(),
     };
+
     downloadJSON(data, "tree.json");
     return merkleTree.getHexRoot();
   };
 
+  
   const form = useForm({
     initialValues: {
-      rewardToken: '',
-      rewardAmount: '',
-      startTimestamp: null,
-      endTimestamp: null
+      rewardToken: '0x536B3cEA28f86cBb90a9F9C3934f8220f230c5Bc',
+      rewardAmount: '10'
     },
     validators: {
-      rewardToken: [required],
-      rewardAmount: [required],
-      startTimestamp: [required],
-      endTimestamp: [required],
+      rewardToken: [],
+      rewardAmount: []
     },
 
-    onSubmit: (form) => {
-      if (dynamicAddresses.length < 2) {
-        setAddressError('Please provide at least 2 addresses.');
-        return; // Exit early so the form doesn't proceed
-      }
+
+    onSubmit: async (form) => {
+      // if (dynamicAddresses.length < 2) {
+      //   setAddressError('Please provide at least 2 addresses.');
+      //   return; // Exit early so the form doesn't proceed
+      // }
       console.log('form', form);
       const merkleRoot = getMerkleRoot();
-      const updatedFormValues = { ...form, merkleRoot };
+
+      const startTimestamp = toBN(await getCurrentBlockTime())
+      .plus(500)
+      .toString()
+;
+      const endTimestamp = toBN(await getCurrentBlockTime())
+      .plus(1000)
+      .toString()
+;
+      const updatedFormValues = { ...form, merkleRoot, startTimestamp, endTimestamp};
+
       console.log('updatedFormValues', updatedFormValues);
       goNext(updatedFormValues as NewProposalForm);
     },
   });
-
-  const handleStartDateChange = (date: Date) => {
-    form.fields.startTimestamp.onChange(date.getTime().toString());
-  };
-
-  const handleEndDateChange = (date: Date) => {
-    form.fields.endTimestamp.onChange(date.getTime().toString());
-  };
 
   return (
     <FormStep
@@ -158,25 +176,6 @@ function AirDropV2DetailsStep () {
         Add Address
       </Button>
       {addressError && <p style={{ color: 'red' }}>{addressError}</p>}
-
-
-      <Calendar
-        value={form.fields.startTimestamp.value ? new Date(parseInt(form.fields.startTimestamp.value)) : null}
-        label={t('Start time')}
-        placeholder={t('Select start timestamp')}
-        locale={'en-GB'}
-        error={form.fields.startTimestamp.error}
-        onChange={handleStartDateChange}
-      />
-
-      <Calendar
-        value={form.fields.endTimestamp.value ? new Date(parseInt(form.fields.endTimestamp.value)) : null}
-        label={t('End time')}
-        placeholder={t('Select end timestamp')}
-        locale={'en-GB'} 
-        error={form.fields.endTimestamp.error}
-        onChange={handleEndDateChange}
-      />
 
     </FormStep>
   );

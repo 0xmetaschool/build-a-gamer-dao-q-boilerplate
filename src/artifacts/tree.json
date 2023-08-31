@@ -1,11 +1,13 @@
 {
-  "addresses": [
-    "0x1A8a36bA1FF133bcFDD8C60bb01E511C363672B0",
-    "0xf503808EE7d381e14B5C39C4D28947D842fD7730"
-  ],
-  "leafNodes": [
-    "c3bae9dbae78453353927902a9e1aca6aafa4f2a709f4fe9d665b605faa8b896",
-    "ef95ffde2db860c20b3cb6a7984365b082d044feff5d738638939fb5c62adf0c"
-  ],
-  "root": "0x5dbbcf3135403ece94ecbed627ea136e03bc01945df1a1c5a60df2a79d8d9fd6"
-}
+    "addresses": [
+      "0xFDDD69Dbc041DeBE65A582BF6835A7D1172E94D2",
+      "0xABe215Fb79fB827978C82379d5974831E2FB5E0d",
+      "0xf503808EE7d381e14B5C39C4D28947D842fD7730",
+      "0x1A8a36bA1FF133bcFDD8C60bb01E511C363672B0"
+    ],
+    "leafNodes": [
+      "30fb0abbe837c294de2ccec844202fc26ccc0fac6467c719b66df038dd28345c",
+      "30fb0abbe837c294de2ccec844202fc26ccc0fac6467c719b66df038dd28345c"
+    ],
+    "root": "0x44c47bc0a3f67f6a5cd051f3eed43ae89070f4898e6e2ca6405dd891634f780c"
+  }
