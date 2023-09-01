@@ -2,11 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DecodedData, DefaultVotingSituations } from '@q-dev/gdk-sdk';
-import { Modal, Tooltip, useLocalStorage } from '@q-dev/q-ui-kit';
-import { toBigNumber } from '@q-dev/utils';
+import { Modal, Tooltip } from '@q-dev/q-ui-kit';
 import { keccak_256 as keccak256 } from 'js-sha3';
 import { MerkleTree } from 'merkletreejs';
-import { MerkleProofType } from 'typings/merkle';
 import { ProposalBaseInfo } from 'typings/proposals';
 
 import Button from 'components/Button';
@@ -27,7 +25,7 @@ import { claimAirdropReward } from 'contracts/helpers/airdrop-v2';
 
 import { PROPOSAL_STATUS } from 'constants/statuses';
 import { unixToDate } from 'utils/date';
-import { type } from 'os';
+
 interface Props {
   proposal: ProposalBaseInfo;
   title: string;
@@ -46,7 +44,6 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const [isUserCanVeto, setIsUserCanVeto] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [merkleProof, setMerkleProof] = useState<any>([]);
-  const [campaignId, setCampaignId] = useState<any>(null);
   const votingEndTime = useEndTime(unixToDate(proposal.params.votingEndTime.toString()));
 
   const loadPermissions = async () => {
@@ -65,35 +62,18 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const isSignNeeded = useMemo(() => {
     return isMembershipSituation && isConstitutionSignNeeded;
   }, [isMembershipSituation, isConstitutionSignNeeded]);
-  
-  const bufferToHex = (buf:any) => {
-    return '0x' + buf.toString('hex');
-  };
 
-  
-  
   const verifyAddressInMerkleTree = async (address: string) => {
     // 1. Load the Merkle tree data from tree.json
     const treeData = await fetch('/src/artifacts/tree.json').then(res => res.json());
     const leafNodes = treeData.leafNodes.map((node:any) => Buffer.from(node, 'hex'));
-    
-    console.log('leafNodes', leafNodes)
     const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
-
-    console.log("---------");
-    console.log("Merkle Tree");
-    console.log("---------");
-    console.log(merkleTree.toString());
-
 
     // 2. Generate a proof for the given address
     const proofArray = leafNodes.map((node:any) =>
       merkleTree.getHexProof(node)
     );
-
-    console.log('proof', proofArray[0])
     setMerkleProof(proofArray[0]);
-    // 3. Verify the proof against the Merkle root
     return true;
   };
 

@@ -14,12 +14,12 @@ import { useProviderStore } from 'store/provider/hooks';
 
 import { daoInstance } from 'contracts/contract-instance';
 import {
+  createAirDropV2Proposal,
   createConstitutionProposal,
   createDAORegistryProposal,
   createGeneralSituationProposal,
   createMembershipSituationProposal,
-  createParameterSituationProposal,
-  createAirDropV2Proposal
+  createParameterSituationProposal
 } from 'contracts/helpers/proposals-helper';
 
 import { PROPOSAL_STATUS } from 'constants/statuses';
