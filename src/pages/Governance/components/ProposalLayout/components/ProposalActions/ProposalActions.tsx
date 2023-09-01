@@ -32,6 +32,8 @@ interface Props {
   decodedCallData: DecodedData | null;
 }
 
+type CampaignStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'ENDED';
+
 function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const { t } = useTranslation();
 
@@ -45,6 +47,45 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [merkleProof, setMerkleProof] = useState<any>([]);
   const votingEndTime = useEndTime(unixToDate(proposal.params.votingEndTime.toString()));
+  const [startTimeStamp, setStartTimestamp] = useState<any>(null);
+  const [endTimestamp, setEndTimestamp] = useState<any>(null);
+  const [countdownMessage, setCountdownMessage] = useState<string>('');
+  const [campaignStatus, setCampaignStatus] = useState<CampaignStatus>('NOT_STARTED');
+
+
+  const formatTimeDifference = (diffInSeconds: number) => {
+    const hours = Math.floor(diffInSeconds / 3600);
+    const minutes = Math.floor((diffInSeconds % 3600) / 60);
+    if (hours > 0) {
+      return `${hours} hours and ${minutes} minutes`;
+    } else {
+      return `${minutes} minutes`;
+    }
+  };
+
+  useEffect(() => {
+    const checkCampaignStatus = () => {
+      const currentTime = Math.floor(Date.now() / 1000); 
+      const startDate = parseInt(localStorage.getItem('startTimestamp') ?? '0');
+      const endDate = parseInt(localStorage.getItem('endTimestamp') ?? '0');
+
+      if (currentTime < startDate) {
+        setCampaignStatus('NOT_STARTED');
+        const timeToStart = startDate - currentTime;
+        setCountdownMessage(`Campaign starts in: ${formatTimeDifference(timeToStart)}`);
+      } else if (currentTime >= startDate && currentTime <= endDate) {
+        setCampaignStatus('IN_PROGRESS');
+      } else if (currentTime > endDate) {
+        setCountdownMessage(`Campaign ended`);
+        setCampaignStatus('ENDED');
+      }
+    };
+
+    const interval = setInterval(checkCampaignStatus, 60000); // Check every minute
+    checkCampaignStatus(); // Check immediately upon mounting
+
+    return () => clearInterval(interval); // Clean up the interval on unmount
+  }, []);
 
   const loadPermissions = async () => {
     const [isCanVoting, isCanVeto] = await Promise.all([
@@ -80,6 +121,7 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const canClaimAirdrop = useMemo(() => {
     // proposal should be executed
     if (proposal.votingStatus !== PROPOSAL_STATUS.executed) return false;
+    if (campaignStatus !== 'IN_PROGRESS') return false;
 
     return Boolean(userAddress) && verifyAddressInMerkleTree(userAddress);
   }, [proposal.votingStatus, userAddress, decodedCallData, isMembershipSituation]);
@@ -141,6 +183,10 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
         >
           {t('CLAIM')}
         </Button>
+      )}
+
+      {proposal.votingStatus === PROPOSAL_STATUS.executed && (campaignStatus !== 'IN_PROGRESS') && (
+        <div className="page-layout__title-actions">{countdownMessage}</div>
       )}
 
       {proposal.votingStatus === PROPOSAL_STATUS.accepted && isUserCanVeto && (

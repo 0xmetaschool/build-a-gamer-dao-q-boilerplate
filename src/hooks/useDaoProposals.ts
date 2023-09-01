@@ -23,7 +23,7 @@ import {
 } from 'contracts/helpers/proposals-helper';
 
 import { PROPOSAL_STATUS } from 'constants/statuses';
-
+import { toBN } from 'utils/numbers';
 export function useDaoProposals () {
   const { currentProvider } = useProviderStore();
 
@@ -63,6 +63,7 @@ export function useDaoProposals () {
       if (!daoInstance) return;
       const votingInstance = await daoInstance.getDAOVotingInstance(panelName);
       const proposal = await votingInstance.getProposal(Number(proposalId));
+
       if (proposal.relatedVotingSituation === 'AirDropV2') {
         const [executedEvent] = await votingInstance.instance.queryFilter(
           votingInstance.instance.filters.ProposalExecuted(proposalId),
@@ -74,9 +75,14 @@ export function useDaoProposals () {
           const receipt = await executedEvent.getTransactionReceipt();
           const rawCampaignId = receipt.logs[0].topics[1];
           const campaignId = parseInt(rawCampaignId);
-          const campaign = receipt.logs[0];
-          // console.log('campaign', campaign)
           localStorage.setItem('campaign_id', campaignId.toString());
+
+          const block = await votingInstance.instance.provider.getBlock(executedEvent.blockNumber);
+          const timestamp = block.timestamp;
+          const startTimestamp = toBN(timestamp).plus(600).toString();
+          const endTimestamp = toBN((timestamp)).plus(2000).toString();
+          localStorage.setItem('startTimestamp', startTimestamp);
+          localStorage.setItem('endTimestamp', endTimestamp);
         }
       }
       return proposal;

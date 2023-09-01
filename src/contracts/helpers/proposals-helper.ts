@@ -113,10 +113,8 @@ export async function createAirDropV2Proposal (form: NewProposalForm) {
     form.startTimestamp,
     form.endTimestamp,
   ]);
-
+  console.log('createCampaignCalldata', createCampaignCalldata)
   
-  localStorage.setItem('campaign_id', createCampaignCalldata);
-
   const votingParams: CreateVotingParameters = {
     remark: form.remark,
     situation: 'AirDropV2',

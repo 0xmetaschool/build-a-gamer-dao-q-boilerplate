@@ -29,8 +29,8 @@ function AirDropV2DetailsStep () {
       const blockNumber = await provider.getBlockNumber();
 
       // Fetch the block details.
-      const startTimestamp = toBN((await provider.getBlock(blockNumber)).timestamp).plus(1000).toString();
-      const endTimestamp = toBN((await provider.getBlock(blockNumber)).timestamp).plus(3000).toString();
+      const startTimestamp = toBN((await provider.getBlock(blockNumber)).timestamp).plus(500).toString();
+      const endTimestamp = toBN((await provider.getBlock(blockNumber)).timestamp).plus(5000).toString();
       setStartTimestamp(startTimestamp);
       setEndTimestamp(endTimestamp);
     };
