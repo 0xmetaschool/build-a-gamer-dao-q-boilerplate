@@ -12,15 +12,35 @@ import Button from 'components/Button';
 import Input from 'components/Input';
 import { FormStep } from 'components/MultiStepForm';
 
-import { getCurrentBlockTime } from 'helpers/blocks';
 import { useNewProposalForm } from '../NewProposalForm';
 import { BigNumber } from "bignumber.js";
-
-
+import Web3 from 'web3';
+import { useProviderStore } from 'store/provider/hooks';
+import { providers, utils } from 'ethers';
 
 
 function AirDropV2DetailsStep () {
+  
+  const [startTimestamp, setStartTimestamp] = useState<any>();
+  const [endTimestamp, setEndTimestamp] = useState<any>();
 
+  useEffect(() => {
+    const fetchBlock = async () => {
+      // Set up the provider. Here, we're using a default provider which connects to multiple backends.
+      const provider = new providers.JsonRpcProvider('https://rpc.qtestnet.org');
+
+      // Fetch the latest block number.
+      const blockNumber = await provider.getBlockNumber();
+
+      // Fetch the block details.
+      const startTimestamp = toBN((await provider.getBlock(blockNumber)).timestamp).plus(400).toString();
+      const endTimestamp = toBN((await provider.getBlock(blockNumber)).timestamp).plus(3000).toString();
+      setStartTimestamp(startTimestamp);
+      setEndTimestamp(endTimestamp);
+    };
+
+    fetchBlock();
+  }, []);
   const { t } = useTranslation();
   const { goNext, goBack } = useNewProposalForm();
 
@@ -43,6 +63,14 @@ function AirDropV2DetailsStep () {
     return new BigNumber(value);
   }
 
+  function wei(value: string | number | bigint, decimal: number = 18): bigint {
+    if (typeof value === 'number' || typeof value === 'bigint') {
+      value = value.toString();
+    }
+  
+    return utils.parseUnits(value as string, decimal).toBigInt();
+  }
+  
   
   function downloadJSON(data: any, filename: string): void {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -76,11 +104,11 @@ function AirDropV2DetailsStep () {
   const form = useForm({
     initialValues: {
       rewardToken: '0x536B3cEA28f86cBb90a9F9C3934f8220f230c5Bc',
-      rewardAmount: '10'
+      amount: 1
     },
     validators: {
       rewardToken: [],
-      rewardAmount: []
+      amount: []
     },
 
 
@@ -91,16 +119,8 @@ function AirDropV2DetailsStep () {
       // }
       console.log('form', form);
       const merkleRoot = getMerkleRoot();
-
-      const startTimestamp = toBN(await getCurrentBlockTime())
-      .plus(500)
-      .toString()
-;
-      const endTimestamp = toBN(await getCurrentBlockTime())
-      .plus(1000)
-      .toString()
-;
-      const updatedFormValues = { ...form, merkleRoot, startTimestamp, endTimestamp};
+      const rewardAmount = wei(form.amount);
+      const updatedFormValues = { ...form, merkleRoot, startTimestamp, endTimestamp, rewardAmount};
 
       console.log('updatedFormValues', updatedFormValues);
       goNext(updatedFormValues as NewProposalForm);
@@ -123,12 +143,12 @@ function AirDropV2DetailsStep () {
       />
 
       <Input
-        value={form.fields.rewardAmount.value || ''}
+        value={form.fields.amount.value || ''}
         label={t('Reward Amount')}
         placeholder={t('Enter reward amount')}
         type="number"
-        onChange={form.fields.rewardAmount.onChange}
-        error={form.fields.rewardAmount.error}
+        onChange={form.fields.amount.onChange}
+        error={form.fields.amount.error}
       />
 
       {/* Dynamic addresses list */}

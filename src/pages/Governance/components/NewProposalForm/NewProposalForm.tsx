@@ -42,6 +42,7 @@ const DEFAULT_VALUES: NewProposalFormType = {
   params: [],
   callData: [],
   rewardToken: '',
+  amount: '',
   rewardAmount: '',
   merkleRoot: '',
   startTimestamp: '',

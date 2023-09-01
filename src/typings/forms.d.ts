@@ -29,7 +29,8 @@ interface NewProposalForm {
   params: FormParameter[];
   callData: string[];
   rewardToken: string;
-  rewardAmount: string;
+  amount: string;
+  rewardAmount: any;
   merkleRoot: string;
   startTimestamp: string;
   endTimestamp: string;
