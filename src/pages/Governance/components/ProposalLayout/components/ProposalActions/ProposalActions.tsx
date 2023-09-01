@@ -126,9 +126,7 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   useEffect(() => {
     if (
       campaignStatus === 'IN_PROGRESS' &&
-      proposal.votingStatus === PROPOSAL_STATUS.executed &&
-      userAddress &&
-      isAddressVerified
+      proposal.votingStatus === PROPOSAL_STATUS.executed
     ) {
       setCanClaimAirdrop(true);
     } else {
@@ -180,7 +178,7 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
       {proposal.votingStatus === PROPOSAL_STATUS.executed && canClaimAirdrop && campaignStatus === 'IN_PROGRESS' && (
         <Button
           style={{ width: '160px' }}
-          disabled={campaignStatus === 'IN_PROGRESS'}
+          disabled={campaignStatus !== 'IN_PROGRESS'}
           onClick={() => submitTransaction({
             submitFn: () => claimAirdropReward({
               index: localStorage.getItem('campaign_id'),
