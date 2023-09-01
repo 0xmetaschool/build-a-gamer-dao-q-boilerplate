@@ -102,8 +102,6 @@ export async function createDAORegistryProposal (form: NewProposalForm) {
 
 export async function createAirDropV2Proposal (form: NewProposalForm) {
   if (!daoInstance) return;
-  // const provider = new providers.JsonRpcProvider("https://rpc.qtestnet.org");
-  // console.log('provider', provider)
   const votingInstance = await daoInstance.getDAOVotingInstance(form.panel);
   const contractInterface = new utils.Interface(AirDropV2);
   const createCampaignCalldata = contractInterface.encodeFunctionData("createCampaign", [
@@ -113,7 +111,6 @@ export async function createAirDropV2Proposal (form: NewProposalForm) {
     form.startTimestamp,
     form.endTimestamp,
   ]);
-  console.log('createCampaignCalldata', createCampaignCalldata)
   
   const votingParams: CreateVotingParameters = {
     remark: form.remark,
@@ -121,12 +118,6 @@ export async function createAirDropV2Proposal (form: NewProposalForm) {
     callData: createCampaignCalldata
   };
 
-  const transactionResponse = await daoInstance.createVoting(votingInstance, votingParams);
-  console.log('transactionResponse', transactionResponse.hash)
-  // const txReceipt = await provider.waitForTransaction(transactionResponse.hash);
-  // console.log('txReceipt', txReceipt);
-
-  return transactionResponse;
 }
 
 export const getStatusState = (status: PROPOSAL_STATUS): TagState => {

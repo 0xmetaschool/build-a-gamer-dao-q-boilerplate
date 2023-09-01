@@ -77,7 +77,6 @@ function AirDropV2DetailsStep () {
       const merkleRoot = getMerkleRoot();
       const rewardAmount = wei(form.amount);
       const updatedFormValues = { ...form, merkleRoot, startTimestamp, endTimestamp, rewardAmount };
-      console.log('updatedFormValues', updatedFormValues)
       goNext(updatedFormValues as NewProposalForm);
     },
   });
