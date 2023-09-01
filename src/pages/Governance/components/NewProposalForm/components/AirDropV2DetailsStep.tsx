@@ -29,7 +29,7 @@ function AirDropV2DetailsStep () {
       const blockNumber = await provider.getBlockNumber();
 
       // Fetch the block details.
-      const startTimestamp = toBN((await provider.getBlock(blockNumber)).timestamp).plus(400).toString();
+      const startTimestamp = toBN((await provider.getBlock(blockNumber)).timestamp).plus(1000).toString();
       const endTimestamp = toBN((await provider.getBlock(blockNumber)).timestamp).plus(3000).toString();
       setStartTimestamp(startTimestamp);
       setEndTimestamp(endTimestamp);
@@ -61,7 +61,7 @@ function AirDropV2DetailsStep () {
 
   const form = useForm({
     initialValues: {
-      rewardToken: '',
+      rewardToken: '0x536B3cEA28f86cBb90a9F9C3934f8220f230c5Bc',
       amount: 1
     },
     validators: {
@@ -77,6 +77,7 @@ function AirDropV2DetailsStep () {
       const merkleRoot = getMerkleRoot();
       const rewardAmount = wei(form.amount);
       const updatedFormValues = { ...form, merkleRoot, startTimestamp, endTimestamp, rewardAmount };
+      console.log('updatedFormValues', updatedFormValues)
       goNext(updatedFormValues as NewProposalForm);
     },
   });

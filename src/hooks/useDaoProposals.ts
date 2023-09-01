@@ -74,6 +74,8 @@ export function useDaoProposals () {
           const receipt = await executedEvent.getTransactionReceipt();
           const rawCampaignId = receipt.logs[0].topics[1];
           const campaignId = parseInt(rawCampaignId);
+          const campaign = receipt.logs[0];
+          // console.log('campaign', campaign)
           localStorage.setItem('campaign_id', campaignId.toString());
         }
       }
