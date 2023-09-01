@@ -47,11 +47,10 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [merkleProof, setMerkleProof] = useState<any>([]);
   const votingEndTime = useEndTime(unixToDate(proposal.params.votingEndTime.toString()));
-  const [startTimeStamp, setStartTimestamp] = useState<any>(null);
-  const [endTimestamp, setEndTimestamp] = useState<any>(null);
+  const [canClaimAirdrop, setCanClaimAirdrop] = useState<boolean>(false);
+  const [isAddressVerified, setIsAddressVerified] = useState<boolean>(false);
   const [countdownMessage, setCountdownMessage] = useState<string>('');
   const [campaignStatus, setCampaignStatus] = useState<CampaignStatus>('NOT_STARTED');
-
 
   const formatTimeDifference = (diffInSeconds: number) => {
     const hours = Math.floor(diffInSeconds / 3600);
@@ -65,7 +64,7 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
 
   useEffect(() => {
     const checkCampaignStatus = () => {
-      const currentTime = Math.floor(Date.now() / 1000); 
+      const currentTime = Math.floor(Date.now() / 1000);
       const startDate = parseInt(localStorage.getItem('startTimestamp') ?? '0');
       const endDate = parseInt(localStorage.getItem('endTimestamp') ?? '0');
 
@@ -76,7 +75,7 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
       } else if (currentTime >= startDate && currentTime <= endDate) {
         setCampaignStatus('IN_PROGRESS');
       } else if (currentTime > endDate) {
-        setCountdownMessage(`Campaign ended`);
+        setCountdownMessage('Campaign ended');
         setCampaignStatus('ENDED');
       }
     };
@@ -105,26 +104,38 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
   }, [isMembershipSituation, isConstitutionSignNeeded]);
 
   const verifyAddressInMerkleTree = async (address: string) => {
-    // 1. Load the Merkle tree data from tree.json
     const treeData = await fetch('/src/artifacts/tree.json').then(res => res.json());
     const leafNodes = treeData.leafNodes.map((node:any) => Buffer.from(node, 'hex'));
     const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
 
-    // 2. Generate a proof for the given address
     const proofArray = leafNodes.map((node:any) =>
       merkleTree.getHexProof(node)
     );
     setMerkleProof(proofArray[0]);
-    return true;
+
+    // Check if the address exists in the Merkle tree and update the state accordingly
+    setIsAddressVerified(leafNodes.includes(keccak256(address)));
   };
 
-  const canClaimAirdrop = useMemo(() => {
-    // proposal should be executed
-    if (proposal.votingStatus !== PROPOSAL_STATUS.executed) return false;
-    if (campaignStatus !== 'IN_PROGRESS') return false;
+  useEffect(() => {
+    if (userAddress) {
+      verifyAddressInMerkleTree(userAddress);
+    }
+  }, [userAddress]);
 
-    return Boolean(userAddress) && verifyAddressInMerkleTree(userAddress);
-  }, [proposal.votingStatus, userAddress, decodedCallData, isMembershipSituation]);
+  useEffect(() => {
+    if (
+      campaignStatus === 'IN_PROGRESS' &&
+      proposal.votingStatus === PROPOSAL_STATUS.executed &&
+      userAddress &&
+      isAddressVerified
+    ) {
+      setCanClaimAirdrop(true);
+    } else {
+      setCanClaimAirdrop(false);
+    }
+  }, [campaignStatus, proposal.votingStatus, userAddress, isAddressVerified]);
+  
 
   const canExecute = useMemo(() => {
     if (proposal.votingStatus !== PROPOSAL_STATUS.passed) return false;
@@ -166,9 +177,10 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
         </Button>
       )}
 
-      {proposal.votingStatus === PROPOSAL_STATUS.executed && canClaimAirdrop && (
+      {proposal.votingStatus === PROPOSAL_STATUS.executed && canClaimAirdrop && campaignStatus === 'IN_PROGRESS' && (
         <Button
           style={{ width: '160px' }}
+          disabled={campaignStatus === 'IN_PROGRESS'}
           onClick={() => submitTransaction({
             submitFn: () => claimAirdropReward({
               index: localStorage.getItem('campaign_id'),
@@ -181,7 +193,7 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
             }
           })}
         >
-          {t('CLAIM')}
+          {campaignStatus === 'IN_PROGRESS' ? t('CLAIM') : countdownMessage}
         </Button>
       )}
 
