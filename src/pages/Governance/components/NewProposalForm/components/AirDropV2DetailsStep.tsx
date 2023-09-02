@@ -61,7 +61,7 @@ function AirDropV2DetailsStep () {
 
   const form = useForm({
     initialValues: {
-      rewardToken: '0x536B3cEA28f86cBb90a9F9C3934f8220f230c5Bc',
+      rewardToken: '',
       amount: 1
     },
     validators: {
