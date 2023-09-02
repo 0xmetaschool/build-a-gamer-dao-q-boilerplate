@@ -131,7 +131,7 @@ function AirDropV2DetailsStep () {
         value={newAddress}
         label={t('Enter New Address')}
         placeholder="Enter new address"
-        hint={'Enter atlest 2 addresses to create a Merkle Tree'}
+        hint={'Enter at least 2 addresses to create a Merkle Tree'}
         onChange={value => setNewAddress(value)}
       />
 
