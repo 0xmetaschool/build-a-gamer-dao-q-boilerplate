@@ -118,6 +118,8 @@ export async function createAirDropV2Proposal (form: NewProposalForm) {
     callData: createCampaignCalldata
   };
 
+  return daoInstance.createVoting(votingInstance, votingParams); 
+
 }
 
 export const getStatusState = (status: PROPOSAL_STATUS): TagState => {
