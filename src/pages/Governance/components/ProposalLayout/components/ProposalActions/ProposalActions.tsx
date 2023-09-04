@@ -57,6 +57,8 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
     const minutes = Math.floor((diffInSeconds % 3600) / 60);
     if (hours > 0) {
       return `${hours} hours and ${minutes} minutes`;
+    } else if (minutes < 0) {
+      return `${diffInSeconds} seconds`;
     } else {
       return `${minutes} minutes`;
     }
@@ -133,7 +135,6 @@ function ProposalActions ({ proposal, title, decodedCallData }: Props) {
       setCanClaimAirdrop(false);
     }
   }, [campaignStatus, proposal.votingStatus, userAddress, isAddressVerified]);
-  
 
   const canExecute = useMemo(() => {
     if (proposal.votingStatus !== PROPOSAL_STATUS.passed) return false;
