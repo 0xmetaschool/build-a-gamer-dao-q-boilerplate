@@ -79,7 +79,7 @@ export function useDaoProposals () {
 
           const block = await votingInstance.instance.provider.getBlock(executedEvent.blockNumber);
           const timestamp = block.timestamp;
-          const startTimestamp = toBN(timestamp).plus(400).toString();
+          const startTimestamp = toBN(timestamp).plus(600).toString();
           const endTimestamp = toBN((timestamp)).plus(2000).toString();
           localStorage.setItem('startTimestamp', startTimestamp);
           localStorage.setItem('endTimestamp', endTimestamp);
